@@ -148,6 +148,25 @@ var _ = Describe("Cache", func() {
 		})
 
 		Describe("Once func", func() {
+			It("keeps the cached value when the destination is a typed nil pointer", func() {
+				err := mycache.Set(&cache.Item{Key: key, Value: "cached"})
+				Expect(err).NotTo(HaveOccurred())
+
+				var dst *string
+				err = mycache.Once(&cache.Item{
+					Key:   key,
+					Value: dst,
+					Do: func(*cache.Item) (interface{}, error) {
+						return nil, errors.New("unexpected cache miss")
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				var got string
+				Expect(mycache.Get(ctx, key, &got)).To(Succeed())
+				Expect(got).To(Equal("cached"))
+			})
+
 			It("calls Func when cache fails", func() {
 				err := mycache.Set(&cache.Item{
 					Ctx:   ctx,

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"reflect"
 	"sync/atomic"
 	"time"
 
@@ -261,7 +262,8 @@ func (cd *Cache) Once(item *Item) error {
 		return err
 	}
 
-	if item.Value == nil || len(b) == 0 {
+	dst := reflect.ValueOf(item.Value)
+	if len(b) == 0 || !dst.IsValid() || (dst.Kind() == reflect.Ptr && dst.IsNil()) {
 		return nil
 	}
 
